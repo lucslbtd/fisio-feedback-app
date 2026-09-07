@@ -12,12 +12,16 @@ import { isFirebaseConfigured } from './services/firebase';
 export function App() {
   const [activeTab, setActiveTab] = useState<'patient' | 'admin'>('patient');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
 
   useEffect(() => {
-    // Escuta autenticação do usuário
+    // Escuta autenticação do usuário — authLoading fica true até o primeiro callback
     const unsubscribeAuth = subscribeAuth((user) => {
       setCurrentUser(user);
+      setAuthLoading(false);
+      // Se acabou de logar, vai direto pro painel
+      if (user) setActiveTab('admin');
     });
 
     // Escuta avaliações em tempo real
@@ -53,8 +57,12 @@ export function App() {
 
         {activeTab === 'admin' && (
           <>
-            {!currentUser ? (
-              <AuthModal onSuccessAuth={() => setActiveTab('admin')} />
+            {authLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-teal-500 border-t-transparent" />
+              </div>
+            ) : !currentUser ? (
+              <AuthModal onSuccessAuth={() => {/* subscribeAuth já redireciona */}} />
             ) : (
               <AdminDashboard
                 evaluations={evaluations}
