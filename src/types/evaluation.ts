@@ -12,6 +12,10 @@ export interface Evaluation {
   preferenceReason?: string; // condicional: motivo da preferência por exercícios ou aparelhos
   comment: string; // Opcional
   createdAt: string; // ISO string de data
+  evaluatorId?: string; // ID do profissional logado
+  evaluatorName?: string; // Nome do profissional
+  location?: 'boa_viagem' | 'poco_da_panela'; // Sede
+  clinicType?: 'esportivo' | 'ambulatorio'; // Tipo de ambulatório
 }
 
-export type EvaluationFormData = Omit<Evaluation, 'id' | 'createdAt'>;
+export type EvaluationFormData = Omit<Evaluation, 'id' | 'createdAt' | 'evaluatorId' | 'evaluatorName' | 'location' | 'clinicType'>;

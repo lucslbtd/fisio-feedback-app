@@ -45,9 +45,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [improvementFilter, setImprovementFilter] = useState<string>('all');
   const [tensFilter, setTensFilter] = useState<string>('all');
   const [preferenceFilter, setPreferenceFilter] = useState<string>('all');
+  
+  // Novos filtros
+  const [timeFilter, setTimeFilter] = useState<string>('all'); // manhã, tarde, noite
+  const [clinicTypeFilter, setClinicTypeFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [professionalFilter, setProfessionalFilter] = useState<string>('all');
 
   // Cálculos de métricas
   const totalCount = evaluations.length;
+
+  // Profissionais únicos para o filtro
+  const uniqueProfessionals = Array.from(
+    new Set(evaluations.map(e => e.evaluatorName).filter(Boolean))
+  ) as string[];
   const avgRating = totalCount > 0
     ? (evaluations.reduce((acc, curr) => acc + curr.rating, 0) / totalCount).toFixed(1)
     : '0.0';
@@ -122,13 +133,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const matchesPreference =
       preferenceFilter === 'all' || item.preference === preferenceFilter;
 
+    // Lógica de tempo (manhã: 06-12, tarde: 12-18, noite: 18-06)
+    let matchesTime = true;
+    if (timeFilter !== 'all') {
+      const hour = new Date(item.createdAt).getHours();
+      if (timeFilter === 'manha') matchesTime = hour >= 6 && hour < 12;
+      else if (timeFilter === 'tarde') matchesTime = hour >= 12 && hour < 18;
+      else if (timeFilter === 'noite') matchesTime = hour >= 18 || hour < 6;
+    }
+
+    const matchesClinicType =
+      clinicTypeFilter === 'all' || item.clinicType === clinicTypeFilter;
+
+    const matchesLocation =
+      locationFilter === 'all' || item.location === locationFilter;
+
+    const matchesProfessional =
+      professionalFilter === 'all' || item.evaluatorName === professionalFilter;
+
     return (
       matchesSearch &&
       matchesRating &&
       matchesPain &&
       matchesImprovement &&
       matchesTens &&
-      matchesPreference
+      matchesPreference &&
+      matchesTime &&
+      matchesClinicType &&
+      matchesLocation &&
+      matchesProfessional
     );
   });
 
@@ -513,6 +546,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <option value="aparelhos">Aparelhos</option>
               <option value="ambos">Ambos</option>
             </select>
+
+            {/* Filtro Horário */}
+            <select
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="py-2 px-3 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="all">Horário: Todos</option>
+              <option value="manha">Manhã (06h - 12h)</option>
+              <option value="tarde">Tarde (12h - 18h)</option>
+              <option value="noite">Noite (18h - 06h)</option>
+            </select>
+
+            {/* Filtro Ambulatório */}
+            <select
+              value={clinicTypeFilter}
+              onChange={(e) => setClinicTypeFilter(e.target.value)}
+              className="py-2 px-3 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="all">Ambulatório: Todos</option>
+              <option value="esportivo">Esportivo</option>
+              <option value="ambulatorio">Ambulatório</option>
+            </select>
+
+            {/* Filtro Sede */}
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="py-2 px-3 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="all">Sede: Todas</option>
+              <option value="boa_viagem">Boa Viagem</option>
+              <option value="poco_da_panela">Poço da Panela</option>
+            </select>
+
+            {/* Filtro Profissional */}
+            <select
+              value={professionalFilter}
+              onChange={(e) => setProfessionalFilter(e.target.value)}
+              className="py-2 px-3 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="all">Profissional: Todos</option>
+              {uniqueProfessionals.map((prof, i) => (
+                <option key={i} value={prof}>{prof}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -552,7 +631,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
-                        {item.name}
+                        <div className="flex flex-col">
+                          <span>{item.name}</span>
+                          {(item.evaluatorName || item.location || item.clinicType) && (
+                            <span className="text-[10px] text-slate-400 font-normal mt-0.5 flex flex-col">
+                              {item.evaluatorName && <span>Prof: {item.evaluatorName}</span>}
+                              {(item.location || item.clinicType) && (
+                                <span>
+                                  {item.location === 'boa_viagem' ? 'Boa Viagem' : item.location === 'poco_da_panela' ? 'Poço da Panela' : ''}
+                                  {item.location && item.clinicType ? ' • ' : ''}
+                                  {item.clinicType === 'esportivo' ? 'Esportivo' : item.clinicType === 'ambulatorio' ? 'Ambulatório' : ''}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1">

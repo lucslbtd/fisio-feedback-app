@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { Evaluation, EvaluationFormData } from '../types/evaluation';
+import { getCurrentUserProfile } from './authService';
 
 const LOCAL_STORAGE_KEY = 'fisio_evaluations_pilot_v3';
 
@@ -106,6 +107,8 @@ export const subscribeEvaluations = (callback: (evaluations: Evaluation[]) => vo
 };
 
 export const saveEvaluationAsync = async (data: EvaluationFormData): Promise<Evaluation> => {
+  const currentUser = getCurrentUserProfile();
+  
   const payload: Omit<Evaluation, 'id'> = {
     name: data.name.trim() || 'Anônimo',
     rating: data.rating,
@@ -120,6 +123,10 @@ export const saveEvaluationAsync = async (data: EvaluationFormData): Promise<Eva
         : '',
     comment: data.comment.trim(),
     createdAt: new Date().toISOString(),
+    evaluatorId: currentUser?.uid,
+    evaluatorName: currentUser?.fullName,
+    location: currentUser?.location,
+    clinicType: currentUser?.clinicType,
   };
 
   // Salva no LocalStorage por garantia
