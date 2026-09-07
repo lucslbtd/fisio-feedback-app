@@ -42,12 +42,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
 
   // Status
   const [errorMsg, setErrorMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    setIsLoading(true);
+    setLoginLoading(true);
 
     try {
       await loginUser(loginEmail, loginPassword);
@@ -62,7 +65,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
         setErrorMsg(message);
       }
     } finally {
-      setIsLoading(false);
+      setLoginLoading(false);
     }
   };
 
@@ -79,7 +82,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
       return;
     }
 
-    setIsLoading(true);
+    setSignupLoading(true);
 
     try {
       const payload: SignUpData = {
@@ -93,7 +96,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
       };
 
       await signUpUser(payload);
-      onSuccessAuth();
+      // Mostra tela de sucesso — o redirecionamento acontece via subscribeAuth em App.tsx
+      setSignupSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar conta';
       if (message.includes('auth/email-already-in-use')) {
@@ -102,14 +106,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
         setErrorMsg(message);
       }
     } finally {
-      setIsLoading(false);
+      setSignupLoading(false);
     }
   };
 
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    setIsLoading(true);
+    setResetLoading(true);
 
     try {
       await sendResetPasswordEmailAsync(resetEmail);
@@ -118,7 +122,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
       const message = err instanceof Error ? err.message : 'Erro ao enviar email';
       setErrorMsg(message);
     } finally {
-      setIsLoading(false);
+      setResetLoading(false);
     }
   };
 
@@ -221,10 +225,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
+            disabled={loginLoading}
+            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
           >
-            {isLoading ? <span>Entrando...</span> : (
+            {loginLoading ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                <span>Entrando...</span>
+              </>
+            ) : (
               <>
                 <span>Entrar no Painel</span>
                 <ArrowRight className="w-4 h-4" />
@@ -236,154 +245,176 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
 
       {/* Formulário 2: CRIAR CONTA (CADASTRO) */}
       {mode === 'signup' && (
-        <form onSubmit={handleSignUpSubmit} className="space-y-4">
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-slate-900">Cadastro de Fisioterapeuta</h2>
-            <p className="text-xs text-slate-500">Crie sua conta para gerenciar atendimentos e métricas</p>
-          </div>
-
-          {/* Nome Completo */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Nome Completo</label>
-            <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Ex: Dra. Ana Paula Silva"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-              />
+        signupSuccess ? (
+          /* ── Tela de confirmação de cadastro ── */
+          <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+            <div className="p-4 bg-emerald-100 rounded-full">
+              <CheckCircle2 className="w-12 h-12 text-emerald-600" />
             </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="email"
-                required
-                value={signupEmail}
-                onChange={(e) => setSignupEmail(e.target.value)}
-                placeholder="seu.email@exemplo.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-              />
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Conta criada com sucesso!</h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Bem-vindo(a), <strong>{fullName}</strong>!
+              </p>
+              <p className="text-xs text-slate-400 mt-2">Redirecionando para o sistema…</p>
             </div>
+            <div className="animate-spin rounded-full h-6 w-6 border-2 border-teal-500 border-t-transparent mt-2" />
           </div>
-
-          {/* Senha */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Senha (Mínimo 6 caracteres)</label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={signupPassword}
-                onChange={(e) => setSignupPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-              />
+        ) : (
+          <form onSubmit={handleSignUpSubmit} className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-xl font-bold text-slate-900">Cadastro de Fisioterapeuta</h2>
+              <p className="text-xs text-slate-500">Crie sua conta para gerenciar atendimentos e métricas</p>
             </div>
-          </div>
 
-          {/* Sede */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-teal-600" />
-              <span>Sede de Atendimento</span>
-            </label>
-            <select
-              value={location}
-              onChange={(e) => setLocation(e.target.value as LocationOption)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-            >
-              <option value="boa_viagem">Boa Viagem</option>
-              <option value="poco_da_panela">Poço da Panela</option>
-            </select>
-          </div>
+            {/* Nome Completo */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Nome Completo</label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Ex: Dra. Ana Paula Silva"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+                />
+              </div>
+            </div>
 
-          {/* Horário de Atendimento (Inicial e Final) */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="email"
+                  required
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  placeholder="seu.email@exemplo.com"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Senha */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Senha (Mínimo 6 caracteres)</label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Sede */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-teal-600" />
-                <span>Horário Inicial</span>
+                <Building2 className="w-3.5 h-3.5 text-teal-600" />
+                <span>Sede de Atendimento</span>
               </label>
-              <input
-                type="time"
-                required
-                value={workStartTime}
-                onChange={(e) => setWorkStartTime(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-              />
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value as LocationOption)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+              >
+                <option value="boa_viagem">Boa Viagem</option>
+                <option value="poco_da_panela">Poço da Panela</option>
+              </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-teal-600" />
-                <span>Horário Final</span>
-              </label>
-              <input
-                type="time"
-                required
-                value={workEndTime}
-                onChange={(e) => setWorkEndTime(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Tipo Ambulatório */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-              <Stethoscope className="w-3.5 h-3.5 text-teal-600" />
-              <span>Tipo de Ambulatório</span>
-            </label>
+            {/* Horário de Atendimento */}
             <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setClinicType('esportivo')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
-                  clinicType === 'esportivo'
-                    ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                }`}
-              >
-                <span>Esportivo</span>
-              </button>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Horário Inicial</span>
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={workStartTime}
+                  onChange={(e) => setWorkStartTime(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+                />
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setClinicType('ambulatorio')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
-                  clinicType === 'ambulatorio'
-                    ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                }`}
-              >
-                <span>Ambulatório</span>
-              </button>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Horário Final</span>
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={workEndTime}
+                  onChange={(e) => setWorkEndTime(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none text-slate-800 text-sm"
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm mt-4"
-          >
-            {isLoading ? <span>Cadastrando...</span> : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                <span>Criar Minha Conta</span>
-              </>
-            )}
-          </button>
-        </form>
+            {/* Tipo Ambulatório */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                <Stethoscope className="w-3.5 h-3.5 text-teal-600" />
+                <span>Tipo de Ambulatório</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setClinicType('esportivo')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                    clinicType === 'esportivo'
+                      ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>Esportivo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setClinicType('ambulatorio')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                    clinicType === 'ambulatorio'
+                      ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>Ambulatório</span>
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={signupLoading}
+              className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm mt-4"
+            >
+              {signupLoading ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  <span>Criando conta...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  <span>Criar Minha Conta</span>
+                </>
+              )}
+            </button>
+          </form>
+        )
       )}
 
       {/* Formulário 3: ESQUECI MINHA SENHA */}
@@ -428,10 +459,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessAuth }) => {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={resetLoading}
                 className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
               >
-                {isLoading ? <span>Enviando...</span> : (
+                {resetLoading ? <span>Enviando...</span> : (
                   <>
                     <KeyRound className="w-4 h-4" />
                     <span>Enviar Link de Redefinição</span>
