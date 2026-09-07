@@ -6,6 +6,7 @@ import {
   UserCheck,
   Building2,
   Clock,
+  Lock,
 } from 'lucide-react';
 import { UserProfile } from '../types/user';
 
@@ -14,6 +15,7 @@ interface NavbarProps {
   setActiveTab: (tab: 'patient' | 'admin') => void;
   currentUser: UserProfile | null;
   onLogout: () => void;
+  canAccessPatientTab?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   currentUser,
   onLogout,
+  canAccessPatientTab = true,
 }) => {
   const formatLocation = (loc: string) => {
     return loc === 'boa_viagem' ? 'Boa Viagem' : 'Poço da Panela';
@@ -36,8 +39,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Logo / Marca */}
           <div
-            className="flex items-center space-x-3 cursor-pointer"
-            onClick={() => setActiveTab('patient')}
+            className={`flex items-center space-x-3 ${canAccessPatientTab ? 'cursor-pointer' : ''}`}
+            onClick={() => canAccessPatientTab && setActiveTab('patient')}
           >
             <div className="p-2 bg-teal-600 text-white rounded-xl shadow-md shadow-teal-600/20">
               <Stethoscope className="w-6 h-6" />
@@ -78,14 +81,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Nav Tabs */}
           <nav className="flex items-center space-x-2">
             <button
-              onClick={() => setActiveTab('patient')}
+              onClick={() => canAccessPatientTab && setActiveTab('patient')}
+              disabled={!canAccessPatientTab}
+              title={!canAccessPatientTab ? "Fora do horário de atendimento" : ""}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                 activeTab === 'patient'
                   ? 'bg-teal-50 text-teal-700 font-semibold shadow-sm border border-teal-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : !canAccessPatientTab
+                  ? 'text-slate-400 bg-slate-50 cursor-not-allowed border border-transparent'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
               }`}
             >
-              <ClipboardList className="w-4 h-4" />
+              {canAccessPatientTab ? (
+                <ClipboardList className="w-4 h-4" />
+              ) : (
+                <Lock className="w-4 h-4 text-slate-400" />
+              )}
               <span>Avaliações</span>
             </button>
 

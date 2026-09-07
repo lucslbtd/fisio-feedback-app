@@ -9,12 +9,21 @@ import { subscribeEvaluations } from './services/storage';
 import { subscribeAuth, logoutUserAsync } from './services/authService';
 import { isFirebaseConfigured } from './services/firebase';
 import { Stethoscope } from 'lucide-react';
+import { isWithinWorkingHours } from './utils/timeCheck';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'patient' | 'admin'>('patient');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+
+  const canAccessPatientTab = currentUser ? isWithinWorkingHours(currentUser.workStartTime, currentUser.workEndTime) : false;
+
+  useEffect(() => {
+    if (currentUser && !canAccessPatientTab && activeTab === 'patient') {
+      setActiveTab('admin');
+    }
+  }, [currentUser, canAccessPatientTab, activeTab]);
 
   useEffect(() => {
     const unsubscribeAuth = subscribeAuth((user) => {
@@ -97,6 +106,7 @@ export function App() {
         setActiveTab={(tab) => setActiveTab(tab)}
         currentUser={currentUser}
         onLogout={handleLogout}
+        canAccessPatientTab={canAccessPatientTab}
       />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
