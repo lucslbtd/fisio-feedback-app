@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Stethoscope,
   ClipboardList,
-  Lock,
   LogOut,
   UserCheck,
   Building2,
@@ -98,23 +97,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Lock className="w-4 h-4" />
+              <ClipboardList className="w-4 h-4" />
               <span>Painel ADM</span>
-              {currentUser && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              )}
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </button>
 
-            {currentUser && activeTab === 'admin' && (
-              <button
-                onClick={onLogout}
-                title="Sair da conta"
-                className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-lg font-medium transition-colors border border-rose-200 ml-2"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sair</span>
-              </button>
-            )}
+            <button
+              onClick={onLogout}
+              title="Sair da conta"
+              className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-lg font-medium transition-colors border border-rose-200 ml-2"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sair</span>
+            </button>
           </nav>
         </div>
       </div>
