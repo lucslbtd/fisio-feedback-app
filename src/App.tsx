@@ -8,7 +8,6 @@ import { UserProfile } from './types/user';
 import { subscribeEvaluations } from './services/storage';
 import { subscribeAuth, logoutUserAsync } from './services/authService';
 import { isFirebaseConfigured } from './services/firebase';
-import { Stethoscope } from 'lucide-react';
 import { isWithinWorkingHours } from './utils/timeCheck';
 
 export function App() {
@@ -65,14 +64,12 @@ export function App() {
       <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800">
         <header className="bg-white border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3">
-            <div className="p-2 bg-teal-600 text-white rounded-xl shadow-md shadow-teal-600/20">
-              <Stethoscope className="w-6 h-6" />
-            </div>
+            <img src="/logo.jpg" alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm" />
             <div>
-              <span className="text-xl font-bold text-slate-800 tracking-tight">
-                Fisio<span className="text-teal-600">Feedback</span>
+              <span className="text-xl font-bold text-black tracking-tight">
+                FisioFeedback
               </span>
-              <span className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 uppercase tracking-wider block w-max">
+              <span className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 uppercase tracking-wider block w-max mt-0.5">
                 Sistema de Avaliação
               </span>
             </div>

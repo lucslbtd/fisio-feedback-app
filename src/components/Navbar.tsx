@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Stethoscope,
   ClipboardList,
   LogOut,
   UserCheck,
@@ -42,14 +41,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center space-x-3 ${canAccessPatientTab ? 'cursor-pointer' : ''}`}
             onClick={() => canAccessPatientTab && setActiveTab('patient')}
           >
-            <div className="p-2 bg-teal-600 text-white rounded-xl shadow-md shadow-teal-600/20">
-              <Stethoscope className="w-6 h-6" />
-            </div>
+            <img src="/logo.jpg" alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm" />
             <div>
-              <span className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
-                Fisio<span className="text-teal-600">Feedback</span>
+              <span className="text-xl font-bold text-black tracking-tight flex items-center gap-1.5">
+                FisioFeedback
               </span>
-              <span className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 uppercase tracking-wider block w-max">
+              <span className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 uppercase tracking-wider block w-max mt-0.5">
                 {currentUser ? formatLocation(currentUser.location) : 'Piloto'}
               </span>
             </div>
